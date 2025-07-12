@@ -4,8 +4,17 @@ import base64
 import os
 from io import BytesIO
 from langchain.memory import ConversationBufferWindowMemory
+import json
+from langchain_openai import ChatOpenAI
+from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 
-#sk-c4L1f9e7fb0ead5e5a76ce561bbe98957b083d34a55dg74i
+
+
+
+
+
+#openai   sk-c4L1f9e7fb0ead5e5a76ce561bbe98957b083d34a55dg74i
+#deepseek sk-d2d7129c0e614170bb3dc84102eb5724
 def get_chat_response_dp(prompt, memory, openai_api_key, modelname):
     if modelname == "deepseek-V3":
         model = ChatOpenAI(
@@ -113,7 +122,78 @@ def get_img_base64(file_name: str) -> str:
     # 返回base64编码的图片数据，格式为data:image/png;base64,编码数据
     return f"data:image/png;base64,{base_str}"
 
+def dataframe_agent(openai_api_key, df, query):
+    model = ChatOpenAI(model = 'deepseek-chat',
+                       openai_api_base='https://api.deepseek.com',
+                       openai_api_key=openai_api_key,
+                       temperature=0
+    )
+    agent = create_pandas_dataframe_agent(llm=model,
+                                          df=df,
+                                          agent_executor_kwargs={"handle_parsing_errors": True},
+                                          verbose=True,
+                                          allow_dangerous_code=True
+                                          )
+    prompt = PROMPT_TEMPLATE + query
+    response = agent.invoke({"input": prompt})
+    response_dict = json.loads(response["output"])
+    return response_dict
 
+
+PROMPT_TEMPLATE = """
+你是一位数据分析助手，负责处理用户关于数据集的查询。请严格遵循以下流程和格式要求完成任务：
+
+一、任务处理流程规范
+1. 思考阶段（未完成任务时）：
+   - 先分析用户需求：判断是否需要调用工具（如计算数据、统计分析）。
+   - 若需要调用工具，必须输出：
+     Thought: [描述你的思考过程，例如："用户需要计算卧室平均数，需调用python_repl_ast工具计算df['bedrooms'].mean()"]
+     Action: python_repl_ast
+     Action Input: [具体执行的代码，例如："df['bedrooms'].mean()"]
+
+2. 最终输出阶段（任务完成后）：
+   - 当工具返回结果或无需工具即可回答时，必须停止工具调用，输出最终答案。
+   - 最终答案需严格用以下格式包裹，且仅包含该格式内容：
+     Final Answer: [你的最终答案，必须符合下方JSON格式要求]
+
+二、最终答案JSON格式要求
+根据用户需求类型，最终答案需按以下JSON格式返回（必须是可解析的标准JSON）：
+
+1. 文字回答（如描述性结论）：
+   {"answer": "<用自然语言描述的答案，字符串需用双引号包围>"}
+   示例：{"answer": "数据集中卧室的平均数为2.97"}
+
+2. 表格输出（如分类统计结果）：
+   {"table": {"columns": ["<列名1>", "<列名2>", ...], "data": [["<值1>", <数值2>, ...], [["<值3>", <数值4>, ...]]]}}
+   示例：{"table": {"columns": ["产品", "订单量"], "data": [["32085Lip", 245], ["76439Eye", 178]]}}
+
+3. 图表输出（仅支持bar/line/scatter三种类型）：
+   {"<图表类型>": {"columns": ["<x轴标签>", "<y轴标签>", ...], "data": [<数值1>, <数值2>, ...]}}
+   示例：{"bar": {"columns": ["月份", "销量"], "data": [120, 150, 180]}}
+
+注意：格式约束补充
+- 所有JSON键名和字符串值必须用双引号（"）包围，不可用单引号。
+- 数值类型（如数字、布尔值）无需加引号；空值用null表示。
+- 禁止在Final Answer外添加任何额外内容（如解释、注释），否则视为格式错误。
+注意：图表输出格式补充
+"bar"/"line"/"scatter" 的 "data" 必须是 **列表的列表**，格式为：
+[
+  [<x轴值1>, <y轴值1>],
+  [<x轴值2>, <y轴值2>],
+  ...
+]
+例如：
+{"bar": {
+  "columns": ["furnishingstatus", "count"], 
+  "data": [
+    ["semi-furnished", 227], 
+    ["unfurnished", 178], 
+    ["furnished", 140]
+  ]
+}}
+禁止使用字典格式（如 {"semi-furnished": 227}），否则无法生成图表。
+你要处理的用户请求如下： 
+"""
 # api测试
 #memory = ConversationBufferWindowMemory(k = 5,return_messages=True)
 #print(get_chat_response("笛卡尔提出了哪些有名的定律？",memory,"sk-64dd601abf7a44368a48c293de9f536f"))
