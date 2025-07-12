@@ -1,1 +1,2 @@
 # AIapp
+一个使用大模型api实现的cloneDeepSeek及RAG应用
