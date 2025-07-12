@@ -96,7 +96,6 @@ def knowledge_base_page():
                     elif file_path.endswith(".pdf"):
                         return PyPDFLoader(file_path)
                     raise ValueError(f"不支持的文件类型: {file_path}")
-
                 # 仅加载本次上传的文件
                 loader = DirectoryLoader(
                     file_storage_path,
@@ -105,7 +104,6 @@ def knowledge_base_page():
                     use_multithreading=True,
                     loader_cls=load_file,
                 )
-
                 # 文本分块处理
                 docs_list = loader.load()
                 text_splitter = RecursiveCharacterTextSplitter(
@@ -114,23 +112,19 @@ def knowledge_base_page():
                     separators=["\n\n", "\n", "。", "！", "？", "，", "、", " ", ""]
                 )
                 doc_splits = text_splitter.split_documents(docs_list)
-
                 # 添加文档源信息
                 for doc in doc_splits:
                     doc.page_content = doc.metadata["source"] + "\n\n" + doc.page_content
-
                 # 向量存储处理
                 import chromadb.api
                 chromadb.api.client.SharedSystemClient.clear_system_cache()
-
                 vectorstore = Chroma(
                     collection_name=selected_kb,
                     embedding_function=get_embedding_model(platform_type="OpenAI"),
                     persist_directory=vs_path,
                 )
-
                 # 分批处理文档并嵌入向量库
-                batch_size = 50
+                batch_size = 135
                 total = len(doc_splits)
                 if total == 0:
                     st.warning("未检测到有效文档内容")

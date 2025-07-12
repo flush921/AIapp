@@ -11,7 +11,7 @@ def dp_base_page():
         st.markdown("[获取Deepseek API Key](https://platform.deepseek.com/api_keys)")
 
 
-    # 初始化会话状态（确保所有需要的键都被初始化）
+    # 初始化会话状态
     if "memory" not in st.session_state:
         st.session_state["memory"] = ConversationBufferWindowMemory(k=10, return_messages=True)
         st.session_state["messages"] = [{"role": "ai", "content": "你好！请选择上方的模型开始对话"}]

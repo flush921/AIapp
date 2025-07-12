@@ -40,27 +40,25 @@ def get_chat_response_dpr1(prompt, memory, openai_api_key):
     return response["response"]
 
 
-# 定义一个常量PLATFORMS，仅包含OpenAI平台
+# 定义一个常量PLATFORMS，仅包含了OpenAI平台，可增加其他平台
 PLATFORMS = ["OpenAI"]
 
-# 定义一个函数get_llm_models，用于获取OpenAI平台的LLM模型列表
+# 获取OpenAI平台的LLM模型列表
 def get_llm_models(platform_type: str= "OpenAI", base_url: str = "https://api.gptsapi.net", api_key: str = ""):
     if platform_type == "OpenAI":
-        # 返回OpenAI预定义的模型列表
         return [
             'gpt-4o',
             'gpt-3.5-turbo'
         ]
-    return []  # 理论上不会执行到这里
+    return []
 
-# 定义一个函数get_embedding_models，用于获取OpenAI平台的Embedding模型列表
+# 获取OpenAI平台的Embedding模型列表
 def get_embedding_models(platform_type: str= "OpenAI", base_url: str = "", api_key: str = "EMPTY"):
-    # 仅保留OpenAI平台的逻辑（此处简化返回示例模型）
     if platform_type == "OpenAI":
         return ["text-embedding-ada-002"]
     return []
 
-# 定义一个函数get_chatllm，用于获取OpenAI平台的聊天模型
+# 获取OpenAI平台的聊天模型
 def get_chatllm(
         platform_type: str= "OpenAI",
         model: str = "",
@@ -68,7 +66,7 @@ def get_chatllm(
         api_key: str = "sk-c4L1f9e7fb0ead5e5a76ce561bbe98957b083d34a55dg74i",
         temperature: float = 0.1
 ):
-    # 仅保留OpenAI平台的逻辑
+
     if platform_type == "OpenAI":
         # 如果没有提供base_url，使用默认的OpenAI地址
         if not base_url:
@@ -82,20 +80,18 @@ def get_chatllm(
             base_url=base_url,
             api_key=api_key,
         )
-    return None  # 理论上不会执行到这里
+    return None
 
-# 定义一个函数get_kb_names，用于获取知识库的名称列表
+# 获取知识库的名称列表
 def get_kb_names():
     # 获取当前文件所在目录下的kb目录路径
     kb_root = os.path.join(os.path.dirname(__file__), "kb")
-    # 如果kb目录不存在，则创建该目录
     if not os.path.exists(kb_root):
         os.mkdir(kb_root)
-    # 获取kb目录下的所有子目录名称，并返回这些名称
     kb_names = [f for f in os.listdir(kb_root) if os.path.isdir(os.path.join(kb_root, f))]
     return kb_names
 
-# 定义一个函数get_embedding_model，用于获取OpenAI平台的Embedding模型
+# 获取OpenAI平台的Embedding模型
 def get_embedding_model(
         platform_type: str= "OpenAI",
         model: str = "text-embedding-ada-002",
@@ -105,7 +101,7 @@ def get_embedding_model(
     from langchain_openai import OpenAIEmbeddings
     return OpenAIEmbeddings(base_url=base_url, api_key=api_key, model=model)
 
-# 定义一个函数get_img_base64，用于获取图片的base64编码
+# 获取图片的base64编码
 def get_img_base64(file_name: str) -> str:
     """
     get_img_base64 used in streamlit.
